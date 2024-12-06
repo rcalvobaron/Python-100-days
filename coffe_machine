@@ -1,0 +1,163 @@
+import coffe_machine
+
+
+
+print("WELCOME TO THE COFFE MACHINE")
+
+
+#TESTING
+print("----------------------------------")
+print(coffe_machine.MENU["espresso"]["ingredients"])
+print(coffe_machine.resources)
+print("----------------------------------")
+
+#TESTING
+
+#TODO 1. Print the resources we have
+
+def validation():
+    selection=""#variable to store user selection latte/espresso/etc
+    maintenance=False #variable to know if we want to turn off machine in order to do maintenance
+    validation=False # Variable to check user input
+
+    while not validation:
+        selection = input("What would you want (espresso/latte/cappuccino:").lower()
+        for coffe in coffe_machine.MENU:
+            if selection==coffe:
+                print(f"You have choosen {selection}")
+                validation=True
+                break
+            if selection=="report":
+                for key,value in coffe_machine.resources.items():
+                    print(f"{key}, {value}")
+
+                print(f"{coffe_machine.profit} €")
+                validation=True
+                break
+            if selection=="off":
+                print("Coffe Machine in maintenance...")
+                maintenance=True
+                validation=True
+                break
+
+        else:
+            print("Sorry we do not have this coffe, please try again")
+
+    return selection , maintenance
+
+#TODO 2 Check if we have enough resources
+
+def check_resources(user_pick,maintenance):
+    if user_pick == "espresso":
+        milk_needed=0
+
+    if user_pick != "off":
+        if user_pick!="report":
+            water_needed=coffe_machine.MENU[user_pick]["ingredients"]["water"]
+            if user_pick!="espresso":
+                milk_needed=coffe_machine.MENU[user_pick]["ingredients"]["milk"]
+
+            coffe_needed=coffe_machine.MENU[user_pick]["ingredients"]["coffee"]
+            water_avaliable = coffe_machine.resources["water"]
+            milk_avaliable = coffe_machine.resources["milk"]
+            coffe_avaliable = coffe_machine.resources["coffee"]
+
+            if water_needed > water_avaliable or milk_needed>milk_avaliable or coffe_needed>coffe_avaliable:
+                print("Sorry there is no resources")
+                maintenance=True
+
+
+    return maintenance
+
+
+#TODO 3 process coins, ask for coins, any type and add up,
+
+def process_coins():
+    quarters = int(input("How many quarters?: "))
+    dimes = int(input("How many dimes?: "))
+    nickles = int(input("How many nickles?: "))
+    pennies = int(input("How many pennies?: "))
+    total_money=quarters*0.25+dimes*0.1+nickles*0.05+pennies*0.01
+
+    return total_money
+
+
+#TODO 4 transaction function to check if we have money and give the change
+def transaction (user_pick,total_money):
+    change=0
+    success=False
+    cost=coffe_machine.MENU[user_pick]["cost"]
+    if total_money >= cost:
+        profit=cost
+        change = round((total_money-cost),2)
+        print(f"Here is your change {change} €")
+        success=True
+    else:
+        print("sorry that's not enough money, money refunded")
+
+
+    return success,profit
+
+#TODO 5 Make coffe and deduct resources
+
+def make_coffe(user_pick):
+    if user_pick=="espresso":
+        milk_remaining=coffe_machine.resources["milk"]
+
+
+    water_remaining=coffe_machine.resources["water"]-coffe_machine.MENU[user_pick]["ingredients"]["water"]
+    if user_pick != "espresso":
+        milk_remaining = coffe_machine.resources["milk"] - coffe_machine.MENU[user_pick]["ingredients"]["milk"]
+
+    coffee_remaining = coffe_machine.resources["coffee"] - coffe_machine.MENU[user_pick]["ingredients"]["coffee"]
+
+    print(f"Here is your {user_pick} enjoy!")
+
+    return water_remaining,milk_remaining,coffee_remaining
+
+
+
+
+
+#MAIN PROGRAM
+
+
+maintenance=False
+user_pick=[]
+while not maintenance:
+
+    user_pick=validation()
+    #it will return a list of coffe selected in pos 0 and pos 1 false or true if we selected off
+    #it will ask user what he/she want, type of coffe off and report
+
+    maintenance=user_pick[1]#it will give us TRUE if user selected off
+    #print(f"user pcik is {user_pick}")
+
+
+    maintenance=check_resources(user_pick[0],maintenance)
+    #it will return false if we have resources and tru if we dont
+    # we are pasing maintenanvce variable from validation function
+
+    #print(f"maintenance is {maintenance}")
+    if user_pick[0]!="report" and not maintenance:
+        if user_pick[0]!="off":
+            total_money=process_coins()#it will adds up all value of all coins inserted
+            #print(f"Total money is {total_money}")
+            trans=[]
+            trans=transaction(user_pick[0],total_money)# to check if we have enough money and it will retun the change
+
+            #print(f"trans is {trans}")
+
+            if trans[0]:
+                resources=[]
+                resources=make_coffe(user_pick[0])
+                # it will return a list of reminaing resources
+
+                coffe_machine.resources["water"]=resources[0]
+                coffe_machine.resources["milk"] = resources[1]
+                coffe_machine.resources["coffee"] = resources[2]
+                coffe_machine.profit += trans[1]
+
+
+
+#TODO 6 espresso no te llet, que fem
